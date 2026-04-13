@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Env (keep .env.example tracked)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug / OS
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+
+# TypeScript
+*.tsbuildinfo
+
+# Vercel
+.vercel
+
+# IDE
+.idea/
+.vscode/
+
+# Large WordPress / DB exports (keep out of git; use local paths or object storage)
+public_html/
+u589264389/
+*.sql
+materialcalcpro*.xml
+materialcalcprocom*.xml

@@ -1,0 +1,266 @@
+@import "tailwindcss";
+
+/*
+ * Pixl theme tokens (WordPress theme.json + style.css)
+ * https://github.com/Automattic/themes/tree/trunk/pixl
+ */
+:root {
+  --pixl-primary: #040de1;
+  --pixl-foreground: #040de1;
+  --pixl-background: #ddcfff;
+  --pixl-tertiary: #cdbaf9;
+  --pixl-gap-fluid: min(30px, 5vw);
+  --pixl-spacing-outer: clamp(
+    0.625rem,
+    calc(0.625rem + ((1vw - 0.48rem) * 1.2019)),
+    1.25rem
+  );
+  --pixl-shadow: 5px 5px 0px -2px var(--pixl-background),
+    5px 5px var(--pixl-foreground);
+  --pixl-content-width: 620px;
+  --pixl-wide-width: 1200px;
+  --pixl-font-size-small: 0.813rem;
+  --pixl-font-size-medium-min: 1rem;
+  --pixl-font-size-medium-max: 1.125rem;
+  --pixl-font-size-large: 1.5rem;
+  --pixl-font-size-x-large: 2rem;
+  --pixl-text-base: 0.875rem;
+  --pixl-leading: 1.6;
+  --pixl-h1: clamp(1.375rem, 1.1442307692307692rem + 0.4807692307692308vw, 1.625rem);
+  --pixl-h2: clamp(1.25rem, 1.1346153846153846rem + 0.2403846153846154vw, 1.375rem);
+  --pixl-h3: clamp(1.125rem, 1.0096153846153846rem + 0.2403846153846154vw, 1.25rem);
+}
+
+@theme inline {
+  --color-pixl-primary: var(--pixl-primary);
+  --color-pixl-foreground: var(--pixl-foreground);
+  --color-pixl-background: var(--pixl-background);
+  --color-pixl-tertiary: var(--pixl-tertiary);
+  --shadow-pixl: var(--pixl-shadow);
+  --spacing-pixl-outer: var(--pixl-spacing-outer);
+  --spacing-pixl-gap: var(--pixl-gap-fluid);
+  --width-pixl-content: var(--pixl-content-width);
+  --width-pixl-wide: var(--pixl-wide-width);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--pixl-background);
+  color: var(--pixl-foreground);
+  font-size: var(--pixl-text-base);
+  font-weight: 300;
+  line-height: var(--pixl-leading);
+}
+
+/* Links (Pixl + style.css) */
+a:not([class*="rounded"]):not(.pixl-btn) {
+  color: var(--pixl-primary);
+  text-underline-offset: 0.3em;
+}
+
+a:not([class*="rounded"]):not(.pixl-btn):hover {
+  text-decoration: underline dotted;
+}
+
+a:not([class*="rounded"]):not(.pixl-btn):focus-visible {
+  text-decoration: underline dotted;
+  outline: 2px solid var(--pixl-primary);
+  outline-offset: 2px;
+}
+
+a:not([class*="rounded"]):not(.pixl-btn):active {
+  text-decoration: underline solid;
+}
+
+/* Form controls (style.css) */
+:is(textarea, input:not([type="submit"])) {
+  color: var(--pixl-foreground);
+  background-color: var(--pixl-background);
+  border: 2px solid var(--pixl-primary);
+  outline: none;
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+:is(textarea, input:not([type="submit"]))::placeholder {
+  color: var(--pixl-foreground);
+  font-weight: 300;
+}
+
+/* Headings (theme.json fluid) */
+h1 {
+  font-size: var(--pixl-h1);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: var(--pixl-h2);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: var(--pixl-h3);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+h4 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+h5 {
+  font-size: var(--pixl-font-size-small);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+h6 {
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+/* Primary button (core button styles) */
+.pixl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 2px solid var(--pixl-primary);
+  border-radius: 0;
+  background-color: var(--pixl-primary);
+  color: var(--pixl-background);
+  font-size: var(--pixl-font-size-small);
+  text-decoration: none;
+  box-shadow: var(--pixl-shadow);
+  padding: calc(0.75em - 2px) calc(1.5em - 2px);
+  cursor: pointer;
+}
+
+.pixl-btn:hover {
+  background-color: var(--pixl-background);
+  color: var(--pixl-primary);
+  border-color: var(--pixl-primary);
+}
+
+.pixl-btn:active {
+  background-color: var(--pixl-primary);
+  color: var(--pixl-background);
+  border-color: var(--pixl-primary);
+  box-shadow: 2px 2px var(--pixl-primary);
+}
+
+.pixl-shadow-block {
+  box-shadow: var(--pixl-shadow);
+}
+
+.wp-content > * + * {
+  margin-top: 1rem;
+}
+
+.wp-content ul,
+.wp-content ol {
+  margin-left: 1.5rem;
+}
+
+.wp-content ul {
+  list-style-type: disc;
+}
+
+.wp-content ol {
+  list-style-type: decimal;
+}
+
+.wp-content hr {
+  border: 0;
+  border-top: 2px solid var(--pixl-primary);
+}
+
+.wp-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.wp-content th,
+.wp-content td {
+  border: 2px solid var(--pixl-primary);
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.wp-content .wp-block-buttons {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.wp-content .wp-block-button__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 2px solid var(--pixl-primary);
+  border-radius: 0;
+  background-color: var(--pixl-primary);
+  color: var(--pixl-background);
+  font-size: var(--pixl-font-size-small);
+  text-decoration: none;
+  box-shadow: var(--pixl-shadow);
+  padding: calc(0.75em - 2px) calc(1.5em - 2px);
+  cursor: pointer;
+}
+
+.wp-content .mcp-calc-wrapper {
+  display: none;
+}
+
+.mcp-react-calculator {
+  border: 2px solid var(--pixl-primary);
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mcp-calc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.mcp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.mcp-field :is(input, select) {
+  border: 2px solid var(--pixl-primary);
+  padding: 0.4rem 0.5rem;
+}
+
+.mcp-unit-toggle {
+  display: flex;
+  gap: 1rem;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+}
+
+.mcp-results {
+  margin-top: 1rem;
+  border-top: 2px dashed var(--pixl-primary);
+  padding-top: 0.75rem;
+}
