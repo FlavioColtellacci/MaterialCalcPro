@@ -35,3 +35,10 @@ u589264389/
 !migration/sql/**/*.sql
 materialcalcpro*.xml
 materialcalcprocom*.xml
+
+# Generated migration seed artifacts (regenerate via scripts/migration/build-seed-*.mjs)
+migration/output/seed_chunks/
+migration/output/seed_chunks_clean/
+migration/output/seed_execute_chunks/
+migration/output/seed_statements/
+migration/output/*.ndjson

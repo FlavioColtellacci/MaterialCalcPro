@@ -30,3 +30,8 @@ Run `migration/sql/001_content_calculator_seo_schema.sql` in Supabase SQL editor
 - `seed-supabase.mjs`: seeds/upserts payload into Supabase.
 - `lib/wp-xml.mjs`: parser for XML pages, calculator scripts, and content blocks.
 - `lib/wp-sql.mjs`: parser for SQL options and analytics/ad/SEO settings.
+
+Optional (for SQL-based seeding or tooling outside the Node upsert path):
+
+- `build-seed-sql-chunks.mjs`: writes chunked SQL under `migration/output/seed_chunks/` (gitignored).
+- `build-seed-statement-files.mjs`: writes one statement per file under `migration/output/seed_statements/` (gitignored).
