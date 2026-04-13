@@ -32,5 +32,6 @@ yarn-error.log*
 public_html/
 u589264389/
 *.sql
+!migration/sql/**/*.sql
 materialcalcpro*.xml
 materialcalcprocom*.xml
