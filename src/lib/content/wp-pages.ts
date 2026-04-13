@@ -15,9 +15,28 @@ export const WP_ROUTE_SLUGS = [
   "privacy",
 ] as const;
 
-const WP_ROUTE_SLUG_SET = new Set<string>(WP_ROUTE_SLUGS);
-
 export type WpRouteSlug = (typeof WP_ROUTE_SLUGS)[number];
+const WP_ROUTE_SLUG_SET = new Set<string>(WP_ROUTE_SLUGS);
+export const CALCULATOR_ROUTE_SLUGS = WP_ROUTE_SLUGS.filter(
+  (slug): slug is Exclude<WpRouteSlug, "home" | "privacy"> =>
+    slug !== "home" && slug !== "privacy",
+);
+export type CalculatorRouteSlug = (typeof CALCULATOR_ROUTE_SLUGS)[number];
+
+const CALCULATOR_ROUTE_SLUG_SET = new Set<string>(CALCULATOR_ROUTE_SLUGS);
+
+const CALCULATOR_PAGE_TITLES: Record<CalculatorRouteSlug, string> = {
+  "concrete-calculator": "Concrete Calculator",
+  "paint-calculator": "Paint Calculator",
+  "tile-calculator": "Tile Calculator",
+  "gravel-calculator": "Gravel Calculator",
+  "drywall-calculator": "Drywall Calculator",
+  "roofing-calculator": "Roofing Calculator",
+  "flooring-calculator": "Flooring Calculator",
+  "asphalt-calculator": "Asphalt Calculator",
+  "fence-post-calculator": "Fence Post Calculator",
+  "brick-calculator": "Brick Calculator",
+};
 
 export type WpPageRecord = {
   slug: string;
@@ -45,6 +64,60 @@ export type WpRouteData = {
   seo: WpSeoRecord | null;
   blocks: WpContentBlockRecord[];
 };
+
+export type SearchablePage = {
+  slug: WpRouteSlug;
+  href: string;
+  title: string;
+  excerpt: string;
+};
+
+function normalizeExcerpt(value: string | null): string {
+  return value?.trim() ?? "";
+}
+
+export function isCalculatorRouteSlug(slug: string): slug is CalculatorRouteSlug {
+  return CALCULATOR_ROUTE_SLUG_SET.has(slug);
+}
+
+export function getRouteHref(slug: WpRouteSlug): string {
+  return slug === "home" ? "/" : `/${slug}/`;
+}
+
+export function getCalculatorTitle(slug: CalculatorRouteSlug): string {
+  return CALCULATOR_PAGE_TITLES[slug];
+}
+
+export async function getSearchablePages(): Promise<SearchablePage[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("pages")
+    .select("slug,title,excerpt")
+    .in("slug", [...WP_ROUTE_SLUGS])
+    .returns<WpPageRecord[]>();
+
+  if (error) {
+    throw new Error(`Failed to fetch searchable pages: ${error.message}`);
+  }
+
+  const records = (data ?? []).filter(
+    (record): record is WpPageRecord & { slug: WpRouteSlug } =>
+      WP_ROUTE_SLUG_SET.has(record.slug),
+  );
+  const bySlug = new Map(records.map((record) => [record.slug, record]));
+
+  return WP_ROUTE_SLUGS.map((slug) => {
+    const record = bySlug.get(slug);
+    return {
+      slug,
+      href: getRouteHref(slug),
+      title:
+        record?.title ??
+        (isCalculatorRouteSlug(slug) ? getCalculatorTitle(slug) : slug === "home" ? "Home" : "Privacy Policy"),
+      excerpt: normalizeExcerpt(record?.excerpt ?? null),
+    };
+  });
+}
 
 export function normalizeWpSlugFromSegments(
   segments?: string[],

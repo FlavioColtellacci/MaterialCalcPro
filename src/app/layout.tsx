@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { DM_Mono } from "next/font/google";
 import Script from "next/script";
+import { SiteFooter } from "@/components/site/site-footer";
+import { SiteHeader } from "@/components/site/site-header";
 import { getSiteSettings } from "@/lib/content/site-settings";
+import { getSearchablePages } from "@/lib/content/wp-pages";
 import "./globals.css";
 
 const dmMono = DM_Mono({
@@ -46,13 +49,21 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const siteSettings = await getSiteSettings();
+  const [siteSettings, searchEntries] = await Promise.all([
+    getSiteSettings(),
+    getSearchablePages(),
+  ]);
   const primaryAdsenseClient = siteSettings.adsenseClientIds[0];
 
   return (
     <html lang="en" className={dmMono.variable}>
       <body className="min-h-screen font-[family-name:var(--font-dm-mono)] antialiased">
+        <a className="skip-link" href="#main-content">
+          Skip to main content
+        </a>
+        <SiteHeader siteName={siteSettings.siteName} searchEntries={searchEntries} />
         {children}
+        <SiteFooter siteName={siteSettings.siteName} />
         {siteSettings.ga4MeasurementId ? (
           <>
             <Script
