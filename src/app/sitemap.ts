@@ -12,11 +12,12 @@ function joinUrl(baseUrl: string, slug: string): string {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteSettings = await getSiteSettings();
   const now = new Date();
+  const routes = [...WP_ROUTE_SLUGS, "calculators"] as const;
 
-  return WP_ROUTE_SLUGS.map((slug) => ({
+  return routes.map((slug) => ({
     url: joinUrl(siteSettings.canonicalBaseUrl, slug),
     lastModified: now,
-    changeFrequency: slug === "home" ? "daily" : "weekly",
-    priority: slug === "home" ? 1 : 0.8,
+    changeFrequency: slug === "home" ? "daily" : slug === "calculators" ? "weekly" : "weekly",
+    priority: slug === "home" ? 1 : slug === "calculators" ? 0.9 : 0.8,
   }));
 }

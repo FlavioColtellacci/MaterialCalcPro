@@ -512,7 +512,7 @@ const calculatorTitles: Record<CalculatorSlug, string> = {
 export function CalculatorModule({ slug }: CalculatorModuleProps) {
   return (
     <section className="mcp-react-calculator pixl-shadow-block">
-      <h3>{calculatorTitles[slug]}</h3>
+      <h2>{calculatorTitles[slug]}</h2>
       {slug === "concrete-calculator" ? <ConcreteModule /> : null}
       {slug === "paint-calculator" ? <PaintModule /> : null}
       {slug === "tile-calculator" ? <TileModule /> : null}
