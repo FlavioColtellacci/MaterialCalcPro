@@ -35,6 +35,7 @@ export function SiteSearch({ entries }: SiteSearchProps) {
         Search pages
       </label>
       <input
+        className="w-full"
         id="site-search-input"
         type="search"
         value={query}

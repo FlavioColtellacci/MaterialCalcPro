@@ -108,9 +108,9 @@ function buildSettingsFromMap(byKey: Map<SiteSettingKey, unknown>): SiteSettings
     privacySlug: asNonEmptyString(byKey.get("privacy_slug")) ?? "privacy",
     ga4MeasurementId,
     adsenseClientIds,
-    googleSiteVerification: asNonEmptyString(
-      byKey.get("google_site_verification"),
-    ),
+    googleSiteVerification:
+      asNonEmptyString(process.env.GOOGLE_SITE_VERIFICATION) ??
+      asNonEmptyString(byKey.get("google_site_verification")),
     adsTxtLines,
   };
 }

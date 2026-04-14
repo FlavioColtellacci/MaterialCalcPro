@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { PageToc } from "@/components/site/page-toc";
 import { RelatedCalculatorsGrid } from "@/components/site/related-calculators-grid";
@@ -26,6 +27,19 @@ type TocItem = {
 
 function stripHtml(input: string): string {
   return input.replace(TAG_REGEX, "").replace(/\s+/g, " ").trim();
+}
+
+function formatDateLabel(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+function estimateReadMinutes(text: string): number {
+  const words = text.split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 220));
 }
 
 function toSlug(input: string): string {
@@ -117,6 +131,7 @@ type WpPageContentProps = {
 };
 
 export function WpPageContent({ routeData }: WpPageContentProps) {
+  const isPrivacyPage = routeData.page.slug === "privacy";
   const isCalculatorPage = isCalculatorRouteSlug(routeData.page.slug);
   const usedIds = new Set<string>();
   const renderedBody = renderHtmlWithAnchors(routeData.page.body_html, "content", usedIds);
@@ -151,6 +166,10 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
     ...renderedBody.tocItems,
     ...renderedBlocks.flatMap((block) => block.tocItems),
   ];
+  const readMinutes = estimateReadMinutes(
+    `${stripHtml(renderedBody.html)} ${renderedBlocks.map((block) => stripHtml(block.contentHtml)).join(" ")}`,
+  );
+  const canonical = routeData.seo?.canonical ?? `https://materialcalcpro.com/${routeData.page.slug}/`;
 
   const breadcrumbItems = [
     { label: "Home", href: "/" },
@@ -158,52 +177,182 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
     { label: routeData.page.title },
   ];
 
-  return (
-    <main id="main-content" className="mx-auto max-w-pixl-wide px-pixl-outer py-pixl-outer">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
-        <article className="pixl-shadow-block mx-auto w-full max-w-pixl-content border-2 border-pixl-primary bg-pixl-background p-pixl-gap lg:mx-0 lg:max-w-none">
-          <Breadcrumbs items={breadcrumbItems} />
-          <h1 className="mt-4">{routeData.page.title}</h1>
-          {isCalculatorPage ? (
-            <div className="mt-pixl-gap">
+  if (isPrivacyPage) {
+    return (
+      <main id="main-content" className="mx-auto w-full max-w-pixl-wide px-pixl-outer py-8 md:py-10">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
+          <article className="space-y-6">
+            <section className="premium-surface p-5 md:p-7">
+              <Breadcrumbs items={breadcrumbItems} />
+              <p className="premium-eyebrow mt-4">Legal and policy</p>
+              <h1 className="mt-2">{routeData.page.title}</h1>
+              <p className="mt-3 max-w-[66ch] text-mcp-text-body">
+                {routeData.page.excerpt?.trim() ||
+                  "Review how MaterialCalcPro handles data, cookies, and privacy controls while using our calculators."}
+              </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="premium-card p-3">
+                  <p className="text-xs uppercase tracking-[0.08em] text-mcp-text-muted">Last reviewed</p>
+                  <p className="mt-1 text-sm font-medium text-mcp-text-strong">
+                    {formatDateLabel(new Date())}
+                  </p>
+                </div>
+                <div className="premium-card p-3">
+                  <p className="text-xs uppercase tracking-[0.08em] text-mcp-text-muted">Reading time</p>
+                  <p className="mt-1 text-sm font-medium text-mcp-text-strong">{readMinutes} min</p>
+                </div>
+                <div className="premium-card p-3">
+                  <p className="text-xs uppercase tracking-[0.08em] text-mcp-text-muted">Canonical URL</p>
+                  <a className="mt-1 block break-all text-sm font-medium" href={canonical}>
+                    {canonical}
+                  </a>
+                </div>
+              </div>
+            </section>
+
+            <section className="premium-surface p-5 md:p-7">
+              <div
+                className="wp-content wp-content--legal"
+                dangerouslySetInnerHTML={{ __html: renderedBody.html }}
+              />
+              {renderedBlocks.length > 0 ? (
+                <div className="mt-8 space-y-6 border-t border-mcp-border-soft pt-6">
+                  {renderedBlocks.map((block) => (
+                    <section key={block.block_key} className="premium-card p-4 md:p-5">
+                      {block.heading ? (
+                        <h2 id={block.blockId ?? undefined} className="scroll-mt-28">
+                          {block.heading}
+                        </h2>
+                      ) : null}
+                      <div className="wp-content wp-content--legal mt-4">
+                        <div dangerouslySetInnerHTML={{ __html: block.contentHtml }} />
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              ) : null}
+            </section>
+          </article>
+
+          <div className="space-y-4">
+            <PageToc title="Privacy sections" items={tocItems} className="hidden xl:block" />
+            <aside className="premium-card p-4">
+              <p className="text-xs uppercase tracking-[0.08em] text-mcp-text-muted">Need quick estimates?</p>
+              <p className="mt-2 text-sm text-mcp-text-body">
+                Jump to the calculators hub for concrete, paint, tile, and more material estimators.
+              </p>
+              <Link className="pixl-btn mt-4" href="/calculators/">
+                Open calculators hub
+              </Link>
+            </aside>
+          </div>
+        </div>
+        <PageToc title="Privacy sections" items={tocItems} className="mt-6 xl:hidden" />
+      </main>
+    );
+  }
+
+  if (isCalculatorPage) {
+    return (
+      <main id="main-content" className="mx-auto max-w-pixl-wide px-pixl-outer py-8 md:py-10">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
+          <article className="space-y-6">
+            <section className="premium-surface p-5 md:p-7">
+              <Breadcrumbs items={breadcrumbItems} />
+              <p className="premium-eyebrow mt-4">Material estimator</p>
+              <h1 className="mt-2">{routeData.page.title}</h1>
+              <p className="mt-3 max-w-[62ch] text-mcp-text-body">
+                {routeData.page.excerpt?.trim() ||
+                  "Adjust dimensions, units, and waste factors to estimate quantities with cleaner job-site planning."}
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <a className="pixl-btn" href="#calculator-tool">
+                  Jump to calculator
+                </a>
+                <a className="premium-nav-link border border-mcp-border-soft" href="#related-calculators">
+                  Compare with related tools
+                </a>
+              </div>
+            </section>
+
+            <section id="calculator-tool" className="premium-surface scroll-mt-28 p-4 md:p-6">
               <CalculatorModule slug={routeData.page.slug as CalculatorRouteSlug} />
-            </div>
-          ) : null}
+            </section>
 
-          <section
-            className="wp-content mt-pixl-gap"
-            dangerouslySetInnerHTML={{ __html: renderedBody.html }}
-          />
+            <section className="premium-surface p-5 md:p-7">
+              <div
+                className="wp-content"
+                dangerouslySetInnerHTML={{ __html: renderedBody.html }}
+              />
+              {renderedBlocks.length > 0 ? (
+                <div className="mt-8 space-y-6 border-t border-mcp-border-soft pt-6">
+                  {renderedBlocks.map((block) => (
+                    <section key={block.block_key} className="wp-content">
+                      {block.heading ? (
+                        <h2 id={block.blockId ?? undefined} className="scroll-mt-28">
+                          {block.heading}
+                        </h2>
+                      ) : null}
+                      <div className="mt-3" dangerouslySetInnerHTML={{ __html: block.contentHtml }} />
+                    </section>
+                  ))}
+                </div>
+              ) : null}
+              <RelatedCalculatorsGrid
+                currentSlug={routeData.page.slug as CalculatorRouteSlug}
+                slugs={CALCULATOR_ROUTE_SLUGS}
+              />
+            </section>
+          </article>
 
-          {renderedBlocks.length > 0 ? (
-            <div className="mt-pixl-gap border-t-2 border-pixl-primary pt-pixl-gap">
-              {renderedBlocks.map((block) => (
-                <section key={block.block_key} className="wp-content mt-6 first:mt-0">
-                  {block.heading ? <h2 id={block.blockId ?? undefined}>{block.heading}</h2> : null}
-                  <div dangerouslySetInnerHTML={{ __html: block.contentHtml }} />
-                </section>
-              ))}
-            </div>
-          ) : null}
+          <PageToc title="Calculator guide" items={tocItems} className="hidden lg:block" />
+        </div>
+        <PageToc title="Calculator guide" items={tocItems} className="mt-6 lg:hidden" />
+        <p className="sr-only">{getCalculatorTitle(routeData.page.slug as CalculatorRouteSlug)}</p>
+      </main>
+    );
+  }
 
-          {isCalculatorPage ? (
-            <RelatedCalculatorsGrid
-              currentSlug={routeData.page.slug as CalculatorRouteSlug}
-              slugs={CALCULATOR_ROUTE_SLUGS}
-            />
-          ) : null}
+  return (
+    <main id="main-content" className="mx-auto max-w-pixl-wide px-pixl-outer py-8 md:py-10">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
+        <article className="space-y-6">
+          <section className="premium-surface p-5 md:p-7">
+            {routeData.page.slug === "home" ? null : <Breadcrumbs items={breadcrumbItems} />}
+            <p className="premium-eyebrow mt-4">Precision instruments</p>
+            <h1 className="mt-2">{routeData.page.title}</h1>
+            {routeData.page.excerpt?.trim() ? (
+              <p className="mt-3 max-w-[66ch] text-mcp-text-body">{routeData.page.excerpt}</p>
+            ) : null}
+          </section>
+
+          <section className="premium-surface p-5 md:p-7">
+            <div className="wp-content" dangerouslySetInnerHTML={{ __html: renderedBody.html }} />
+
+            {renderedBlocks.length > 0 ? (
+              <div className="mt-8 space-y-6 border-t border-mcp-border-soft pt-6">
+                {renderedBlocks.map((block) => (
+                  <section key={block.block_key} className="wp-content">
+                    {block.heading ? (
+                      <h2 id={block.blockId ?? undefined} className="scroll-mt-28">
+                        {block.heading}
+                      </h2>
+                    ) : null}
+                    <div className="mt-3" dangerouslySetInnerHTML={{ __html: block.contentHtml }} />
+                  </section>
+                ))}
+              </div>
+            ) : null}
+          </section>
         </article>
         <div className="hidden lg:block">
-          <PageToc items={tocItems} />
+          <PageToc title="On this page" items={tocItems} />
         </div>
       </div>
       {tocItems.length > 0 ? (
         <div className="mt-6 lg:hidden">
-          <PageToc items={tocItems} />
+          <PageToc title="On this page" items={tocItems} />
         </div>
-      ) : null}
-      {isCalculatorPage ? (
-        <p className="sr-only">{getCalculatorTitle(routeData.page.slug as CalculatorRouteSlug)}</p>
       ) : null}
     </main>
   );
