@@ -6,13 +6,15 @@ import type { SearchablePage } from "@/lib/content/wp-pages";
 
 type SiteSearchProps = {
   entries: SearchablePage[];
+  /** Tighter layout for the site header */
+  compact?: boolean;
 };
 
 function normalizeQuery(query: string): string {
   return query.trim().toLowerCase();
 }
 
-export function SiteSearch({ entries }: SiteSearchProps) {
+export function SiteSearch({ entries, compact = false }: SiteSearchProps) {
   const [query, setQuery] = useState("");
   const normalizedQuery = normalizeQuery(query);
 
@@ -23,15 +25,19 @@ export function SiteSearch({ entries }: SiteSearchProps) {
 
     return entries
       .filter((entry) => {
-        const haystack = `${entry.title} ${entry.excerpt}`.toLowerCase();
+        const slugWords = entry.slug.replace(/-/g, " ");
+        const haystack = `${entry.title} ${entry.excerpt} ${slugWords}`.toLowerCase();
         return haystack.includes(normalizedQuery);
       })
       .slice(0, 6);
   }, [entries, normalizedQuery]);
 
   return (
-    <div className="site-search">
-      <label className="site-search__label" htmlFor="site-search-input">
+    <div className={compact ? "site-search site-search--compact" : "site-search"}>
+      <label
+        className={compact ? "sr-only" : "site-search__label"}
+        htmlFor="site-search-input"
+      >
         Search pages
       </label>
       <input

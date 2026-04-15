@@ -16,6 +16,7 @@ const eslintConfig = [
       ".next/**",
       "out/**",
       "public_html/**",
+      "migration/output/**",
       "*.xml",
       "*.sql",
       "next-env.d.ts",

@@ -1,6 +1,6 @@
-# Migration Pipeline
+# Migration pipeline
 
-This folder contains the XML/SQL extraction and Supabase seed pipeline for the MaterialCalcPro WordPress migration.
+Node scripts that read **gitignored** WordPress exports (XML + SQL) and produce a normalized JSON payload for Supabase. Background and source mapping: [docs/migration-source-audit.md](../../docs/migration-source-audit.md).
 
 ## Commands
 

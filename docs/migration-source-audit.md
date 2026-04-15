@@ -1,13 +1,12 @@
-# Source Audit Migration Matrix
+# Source audit (WordPress → Next.js + Supabase)
 
-This document inventories the current WordPress source-of-truth artifacts and maps them into the planned Next.js + Supabase migration model for pages, calculators, SEO, and integrations.
+This document inventories the WordPress export artifacts used for migration and maps them into the Supabase content model (pages, calculators, SEO, integrations). It is a historical reference for the extraction pipeline under `scripts/migration/`.
 
-## Audited Inputs
+## Audited inputs (local exports, gitignored)
 
 - `materialcalcprocom.WordPress.2026-04-13.xml`
 - `u589264389_GZdzZ.sql`
-- `public_html/wp-content/themes/pixl/theme.json`
-- `public_html/wp-content/themes/pixl/style.css`
+- Theme tokens were taken from the former WordPress `pixl` theme (`theme.json` / `style.css` under a local `wp-content/themes/pixl/` tree). The Next.js app now owns styling; no theme bundle is kept in this repository.
 
 ## Migration Matrix (High Level)
 
