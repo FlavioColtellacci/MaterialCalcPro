@@ -16,7 +16,8 @@ const SCRIPT_TAG_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 const LEGACY_CALCULATOR_WRAPPER_REGEX =
   /<div\b[^>]*class="[^"]*mcp-calc-wrapper[^"]*"[^>]*>[\s\S]*?<\/div>/gi;
 const HEADING_TAG_REGEX = /<(\/?)h([1-6])(\b[^>]*)>/gi;
-const HEADING_WITH_CONTENT_REGEX = /<h([2-3])([^>]*)>([\s\S]*?)<\/h\1>/gi;
+/* After normalizeHeadingTags(), WP h3 blocks become h4+ — include h2–h6 for TOC anchors */
+const HEADING_WITH_CONTENT_REGEX = /<h([2-6])([^>]*)>([\s\S]*?)<\/h\1>/gi;
 const TAG_REGEX = /<[^>]*>/g;
 
 type TocItem = {
@@ -73,6 +74,7 @@ function sanitizeWpHtml(html: string): string {
     .replace(SCRIPT_TAG_REGEX, "")
     .replace(LEGACY_CALCULATOR_WRAPPER_REGEX, "")
     .replace(SITE_ORIGIN_REGEX, "/")
+    .replace(/ilcapofla@gmail\.com/gi, "info@catalitium.com")
     .trim();
 }
 
@@ -103,7 +105,7 @@ function renderHtmlWithAnchors(
   const renderedHtml = normalizedHtml.replace(
     HEADING_WITH_CONTENT_REGEX,
     (fullMatch, levelText: string, attributes: string, headingContent: string) => {
-      const level = Number(levelText) as 2 | 3;
+      const level = Number(levelText) as 2 | 3 | 4 | 5 | 6;
       const headingTitle = stripHtml(headingContent);
       if (!headingTitle) {
         return fullMatch;
@@ -113,10 +115,11 @@ function renderHtmlWithAnchors(
       const baseId = existingId || `${idPrefix}-${toSlug(headingTitle)}`;
       const id = getUniqueId(baseId, usedIds);
       const attrsWithoutId = attributes.replace(/\sid=(['"])(.*?)\1/i, "");
+      const tocLevel: 2 | 3 = level <= 2 ? 2 : 3;
       tocItems.push({
         id,
         title: headingTitle,
-        level,
+        level: tocLevel,
       });
 
       return `<h${level}${attrsWithoutId} id="${id}">${headingContent}</h${level}>`;
@@ -129,6 +132,69 @@ function renderHtmlWithAnchors(
 type WpPageContentProps = {
   routeData: WpRouteData;
 };
+
+function buildArticleSideSummary(routeData: WpRouteData): string {
+  const excerpt = routeData.page.excerpt?.trim();
+  if (excerpt) {
+    return excerpt;
+  }
+  const plain = stripHtml(routeData.page.body_html).replace(/\s+/g, " ").trim();
+  if (plain.length > 0) {
+    return plain.length > 280 ? `${plain.slice(0, 280)}…` : plain;
+  }
+  return "Browse construction material calculators for quick, practical quantity estimates.";
+}
+
+type ArticleSideRailProps = {
+  tocItems: TocItem[];
+  tocTitle: string;
+  routeData: WpRouteData;
+  readMinutes: number;
+  variant: "default" | "calculator";
+  className?: string;
+};
+
+function ArticleSideRail({
+  tocItems,
+  tocTitle,
+  routeData,
+  readMinutes,
+  variant,
+  className,
+}: ArticleSideRailProps) {
+  if (tocItems.length > 0) {
+    return <PageToc title={tocTitle} items={tocItems} className={className} />;
+  }
+
+  const summary = buildArticleSideSummary(routeData);
+  return (
+    <aside
+      className={`premium-card sticky top-4 h-fit space-y-4 p-4 ${className ?? ""}`.trim()}
+      aria-label="Page overview"
+    >
+      <p className="text-xs uppercase tracking-[0.08em] text-mcp-text-muted">Overview</p>
+      <p className="text-sm leading-relaxed text-mcp-text-body">{summary}</p>
+      <p className="text-xs text-mcp-text-muted">About {readMinutes} min read</p>
+      {variant === "calculator" ? (
+        <div className="flex flex-col gap-2">
+          <a className="pixl-btn text-center text-sm" href="#calculator-tool">
+            Open calculator
+          </a>
+          <a
+            className="premium-nav-link justify-center border border-mcp-border-soft py-2 text-sm"
+            href="#related-calculators"
+          >
+            Related calculators
+          </a>
+        </div>
+      ) : (
+        <Link className="pixl-btn text-center text-sm" href="/calculators/">
+          Browse all calculators
+        </Link>
+      )}
+    </aside>
+  );
+}
 
 export function WpPageContent({ routeData }: WpPageContentProps) {
   const isPrivacyPage = routeData.page.slug === "privacy";
@@ -182,7 +248,7 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
       <main id="main-content" className="mx-auto w-full max-w-pixl-wide px-pixl-outer py-8 md:py-10">
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
           <article className="space-y-6">
-            <section className="premium-surface p-5 md:p-7">
+            <section className="premium-surface p-6 md:p-8">
               <Breadcrumbs items={breadcrumbItems} />
               <p className="premium-eyebrow mt-4">Legal and policy</p>
               <h1 className="mt-2">{routeData.page.title}</h1>
@@ -210,7 +276,7 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
               </div>
             </section>
 
-            <section className="premium-surface p-5 md:p-7">
+            <section className="premium-surface p-6 md:p-8">
               <div
                 className="wp-content wp-content--legal"
                 dangerouslySetInnerHTML={{ __html: renderedBody.html }}
@@ -235,7 +301,14 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
           </article>
 
           <div className="space-y-4">
-            <PageToc title="Privacy sections" items={tocItems} className="hidden xl:block" />
+            <ArticleSideRail
+              tocItems={tocItems}
+              tocTitle="Privacy sections"
+              routeData={routeData}
+              readMinutes={readMinutes}
+              variant="default"
+              className="hidden xl:block"
+            />
             <aside className="premium-card p-4">
               <p className="text-xs uppercase tracking-[0.08em] text-mcp-text-muted">Need quick estimates?</p>
               <p className="mt-2 text-sm text-mcp-text-body">
@@ -247,7 +320,15 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
             </aside>
           </div>
         </div>
-        <PageToc title="Privacy sections" items={tocItems} className="mt-6 xl:hidden" />
+        <div className="mt-6 xl:hidden">
+          <ArticleSideRail
+            tocItems={tocItems}
+            tocTitle="Privacy sections"
+            routeData={routeData}
+            readMinutes={readMinutes}
+            variant="default"
+          />
+        </div>
       </main>
     );
   }
@@ -257,7 +338,7 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
       <main id="main-content" className="mx-auto max-w-pixl-wide px-pixl-outer py-8 md:py-10">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
           <article className="space-y-6">
-            <section className="premium-surface p-5 md:p-7">
+            <section className="premium-surface p-6 md:p-8">
               <Breadcrumbs items={breadcrumbItems} />
               <p className="premium-eyebrow mt-4">Material estimator</p>
               <h1 className="mt-2">{routeData.page.title}</h1>
@@ -279,7 +360,7 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
               <CalculatorModule slug={routeData.page.slug as CalculatorRouteSlug} />
             </section>
 
-            <section className="premium-surface p-5 md:p-7">
+            <section className="premium-surface p-6 md:p-8">
               <div
                 className="wp-content"
                 dangerouslySetInnerHTML={{ __html: renderedBody.html }}
@@ -305,9 +386,24 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
             </section>
           </article>
 
-          <PageToc title="Calculator guide" items={tocItems} className="hidden lg:block" />
+          <ArticleSideRail
+            tocItems={tocItems}
+            tocTitle="Calculator guide"
+            routeData={routeData}
+            readMinutes={readMinutes}
+            variant="calculator"
+            className="hidden lg:block"
+          />
         </div>
-        <PageToc title="Calculator guide" items={tocItems} className="mt-6 lg:hidden" />
+        <div className="mt-6 lg:hidden">
+          <ArticleSideRail
+            tocItems={tocItems}
+            tocTitle="Calculator guide"
+            routeData={routeData}
+            readMinutes={readMinutes}
+            variant="calculator"
+          />
+        </div>
         <p className="sr-only">{getCalculatorTitle(routeData.page.slug as CalculatorRouteSlug)}</p>
       </main>
     );
@@ -317,7 +413,7 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
     <main id="main-content" className="mx-auto max-w-pixl-wide px-pixl-outer py-8 md:py-10">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
         <article className="space-y-6">
-          <section className="premium-surface p-5 md:p-7">
+          <section className="premium-surface p-6 md:p-8">
             {routeData.page.slug === "home" ? null : <Breadcrumbs items={breadcrumbItems} />}
             <p className="premium-eyebrow mt-4">Precision instruments</p>
             <h1 className="mt-2">{routeData.page.title}</h1>
@@ -326,7 +422,7 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
             ) : null}
           </section>
 
-          <section className="premium-surface p-5 md:p-7">
+          <section className="premium-surface p-6 md:p-8">
             <div className="wp-content" dangerouslySetInnerHTML={{ __html: renderedBody.html }} />
 
             {renderedBlocks.length > 0 ? (
@@ -345,15 +441,24 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
             ) : null}
           </section>
         </article>
-        <div className="hidden lg:block">
-          <PageToc title="On this page" items={tocItems} />
-        </div>
+        <ArticleSideRail
+          tocItems={tocItems}
+          tocTitle="On this page"
+          routeData={routeData}
+          readMinutes={readMinutes}
+          variant="default"
+          className="hidden lg:block"
+        />
       </div>
-      {tocItems.length > 0 ? (
-        <div className="mt-6 lg:hidden">
-          <PageToc title="On this page" items={tocItems} />
-        </div>
-      ) : null}
+      <div className="mt-6 lg:hidden">
+        <ArticleSideRail
+          tocItems={tocItems}
+          tocTitle="On this page"
+          routeData={routeData}
+          readMinutes={readMinutes}
+          variant="default"
+        />
+      </div>
     </main>
   );
 }

@@ -30,14 +30,9 @@ export function SiteFooter({ siteName }: SiteFooterProps) {
               </Link>
             </li>
             <li>
-              <Link className="premium-nav-link" href="#">
-                Contact Support
-              </Link>
-            </li>
-            <li>
-              <Link className="premium-nav-link" href="#">
-                API Docs
-              </Link>
+              <a className="premium-nav-link" href="mailto:info@catalitium.com">
+                Support
+              </a>
             </li>
           </ul>
         </nav>
