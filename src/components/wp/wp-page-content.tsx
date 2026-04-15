@@ -30,6 +30,111 @@ function stripHtml(input: string): string {
   return input.replace(TAG_REGEX, "").replace(/\s+/g, " ").trim();
 }
 
+/** WP excerpts often end with … or runs of dots; normalize to a single full stop. */
+function normalizeExcerptForDisplay(text: string): string {
+  let t = text.trim();
+  if (!t) {
+    return "";
+  }
+  // Map common Unicode “dot-like” punctuation to ASCII so end rules apply.
+  t = t.replace(/\u2026/g, "…").replace(/\uff0e|\u2024|\u2025|\u22ef/g, ".");
+  // Trailing ellipsis / run of dots → one period
+  t = t.replace(/(?:\s*\.{2,}|\s*…)+\s*$/u, ".");
+  // "project.." or "project. ." at end (sentence stop + extra)
+  t = t.replace(/(\w)(?:\.\s*){2,}$/u, "$1.");
+  // Any remaining 2+ periods at string end
+  t = t.replace(/\.{2,}\s*$/u, ".");
+  return t.trim();
+}
+
+/** Meta/SEO excerpts: strip chopped tails ("…: U...") and odd ellipsis runs from imports. */
+function scrubSeoExcerptNoise(raw: string): string {
+  let t = normalizeExcerptForDisplay(raw);
+  if (!t) {
+    return "";
+  }
+  for (let i = 0; i < 4; i += 1) {
+    const prev = t;
+    t = t
+      .replace(/\s+[\w()[\]°³²¼½"'/,\-]{1,24}(?:\.{2,}|…+)\s*$/u, "")
+      .replace(/\s*:\s*[A-Za-z0-9]{1,14}\.\s*$/u, "");
+    if (t === prev) {
+      break;
+    }
+    t = normalizeExcerptForDisplay(t);
+  }
+  return t.trim();
+}
+
+function excerptLooksMetaChopped(s: string): boolean {
+  if (!s) {
+    return false;
+  }
+  if (/:\s*[A-Za-z0-9]{1,8}(?:\.{2,}|…+)\s*$/u.test(s)) {
+    return true;
+  }
+  if (/:\s*[A-Za-z]{1,5}\.\s*$/u.test(s)) {
+    return true;
+  }
+  if (/\b[A-Za-z]{1,2}(?:\.{2,}|…+)\s*$/u.test(s)) {
+    return true;
+  }
+  return false;
+}
+
+const CALCULATOR_HERO_FALLBACK =
+  "Adjust dimensions, units, and waste factors to estimate quantities with cleaner job-site planning.";
+
+function buildCalculatorHeroIntro(routeData: WpRouteData): string {
+  const bodyPlain = stripHtml(routeData.page.body_html).replace(/\s+/g, " ").trim();
+  let fromExcerpt = scrubSeoExcerptNoise(routeData.page.excerpt ?? "");
+  if (excerptLooksMetaChopped(fromExcerpt)) {
+    fromExcerpt = fromExcerpt.replace(/\s*:\s*[A-Za-z0-9]{1,14}\.\s*$/u, "").trim();
+    fromExcerpt = normalizeExcerptForDisplay(fromExcerpt);
+  }
+
+  const excerptOk =
+    /[a-z0-9]/i.test(fromExcerpt) &&
+    fromExcerpt.length >= 36 &&
+    !excerptLooksMetaChopped(fromExcerpt);
+
+  if (excerptOk) {
+    return fromExcerpt;
+  }
+  if (bodyPlain.length >= 80) {
+    return truncateLeadFromBody(bodyPlain, 300);
+  }
+  if (fromExcerpt.length >= 12 && /[a-z0-9]/i.test(fromExcerpt)) {
+    return fromExcerpt;
+  }
+  return CALCULATOR_HERO_FALLBACK;
+}
+
+function truncateLeadFromBody(plain: string, maxChars: number): string {
+  const collapsed = plain.replace(/\s+/g, " ").trim();
+  if (collapsed.length <= maxChars) {
+    return collapsed;
+  }
+  const slice = collapsed.slice(0, maxChars);
+  const lastSpace = slice.lastIndexOf(" ");
+  const end = lastSpace > maxChars * 0.55 ? lastSpace : maxChars;
+  return `${collapsed.slice(0, end).trimEnd()}…`;
+}
+
+function buildHeroIntro(routeData: WpRouteData): string | null {
+  const excerpt = scrubSeoExcerptNoise(routeData.page.excerpt ?? "");
+  const bodyPlain = stripHtml(routeData.page.body_html).replace(/\s+/g, " ").trim();
+  const excerptHasSubstance = /[a-z0-9]/i.test(excerpt);
+
+  if (excerpt.length > 0 && excerptHasSubstance) {
+    return excerpt;
+  }
+  if (bodyPlain.length > 0) {
+    return truncateLeadFromBody(bodyPlain, 420);
+  }
+  return null;
+}
+
 function formatDateLabel(date: Date): string {
   return new Intl.DateTimeFormat("en-US", {
     month: "long",
@@ -134,9 +239,9 @@ type WpPageContentProps = {
 };
 
 function buildArticleSideSummary(routeData: WpRouteData): string {
-  const excerpt = routeData.page.excerpt?.trim();
-  if (excerpt) {
-    return excerpt;
+  const excerpt = scrubSeoExcerptNoise(routeData.page.excerpt ?? "");
+  if (excerpt.length > 0) {
+    return excerpt.length > 280 ? `${excerpt.slice(0, 280)}…` : excerpt;
   }
   const plain = stripHtml(routeData.page.body_html).replace(/\s+/g, " ").trim();
   if (plain.length > 0) {
@@ -236,6 +341,7 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
     `${stripHtml(renderedBody.html)} ${renderedBlocks.map((block) => stripHtml(block.contentHtml)).join(" ")}`,
   );
   const canonical = routeData.seo?.canonical ?? `https://materialcalcpro.com/${routeData.page.slug}/`;
+  const heroIntro = buildHeroIntro(routeData);
 
   const breadcrumbItems = [
     { label: "Home", href: "/" },
@@ -253,7 +359,7 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
               <p className="premium-eyebrow mt-4">Legal and policy</p>
               <h1 className="mt-2">{routeData.page.title}</h1>
               <p className="mt-3 max-w-[66ch] text-mcp-text-body">
-                {routeData.page.excerpt?.trim() ||
+                {scrubSeoExcerptNoise(routeData.page.excerpt ?? "") ||
                   "Review how MaterialCalcPro handles data, cookies, and privacy controls while using our calculators."}
               </p>
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -334,6 +440,7 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
   }
 
   if (isCalculatorPage) {
+    const calculatorIntro = buildCalculatorHeroIntro(routeData);
     return (
       <main id="main-content" className="mx-auto max-w-pixl-wide px-pixl-outer py-8 md:py-10">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
@@ -342,9 +449,8 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
               <Breadcrumbs items={breadcrumbItems} />
               <p className="premium-eyebrow mt-4">Material estimator</p>
               <h1 className="mt-2">{routeData.page.title}</h1>
-              <p className="mt-3 max-w-[62ch] text-mcp-text-body">
-                {routeData.page.excerpt?.trim() ||
-                  "Adjust dimensions, units, and waste factors to estimate quantities with cleaner job-site planning."}
+              <p className="mt-4 max-w-[68ch] text-base leading-relaxed text-mcp-text-body md:text-lg">
+                {calculatorIntro}
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
                 <a className="pixl-btn" href="#calculator-tool">
@@ -417,8 +523,10 @@ export function WpPageContent({ routeData }: WpPageContentProps) {
             {routeData.page.slug === "home" ? null : <Breadcrumbs items={breadcrumbItems} />}
             <p className="premium-eyebrow mt-4">Precision instruments</p>
             <h1 className="mt-2">{routeData.page.title}</h1>
-            {routeData.page.excerpt?.trim() ? (
-              <p className="mt-3 max-w-[66ch] text-mcp-text-body">{routeData.page.excerpt}</p>
+            {heroIntro ? (
+              <p className="mt-4 max-w-[68ch] text-base leading-relaxed text-mcp-text-body md:text-lg">
+                {heroIntro}
+              </p>
             ) : null}
           </section>
 

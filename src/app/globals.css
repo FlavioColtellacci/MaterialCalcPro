@@ -19,14 +19,14 @@
   --mcp-leading-default: 1.6;
   --mcp-letter-label: 0.08em;
 
-  /* Color ramps */
-  --mcp-color-bg-canvas: #f4fafd;
-  --mcp-color-bg-surface: #ffffff;
-  --mcp-color-bg-muted: #eef5f7;
+  /* Color ramps — warm paper + ember accent (restrained, not flat white) */
+  --mcp-color-bg-canvas: #f6f0eb;
+  --mcp-color-bg-surface: #fffbf7;
+  --mcp-color-bg-muted: #efe5de;
   --mcp-color-bg-emphasis: #13243f;
-  --mcp-color-text-strong: #161d1f;
-  --mcp-color-text-body: #3c474c;
-  --mcp-color-text-muted: #5a646a;
+  --mcp-color-text-strong: #1a1715;
+  --mcp-color-text-body: #423c38;
+  --mcp-color-text-muted: #6b5f57;
   --mcp-color-border-strong: #7a3000;
   --mcp-color-border-soft: #e2bfb0;
   --mcp-color-accent: #ff6b00;
@@ -57,11 +57,11 @@
   --mcp-radius-lg: 1.25rem;
 
   /* Shadow + motion */
-  --mcp-shadow-sm: 0 1px 2px 0 rgb(17 28 33 / 0.12);
-  --mcp-shadow-md: 0 8px 20px -10px rgb(17 28 33 / 0.25);
-  --mcp-shadow-lg: 0 14px 32px -16px rgb(17 28 33 / 0.35);
+  --mcp-shadow-sm: 0 1px 2px 0 rgb(62 42 32 / 0.1);
+  --mcp-shadow-md: 0 8px 22px -10px rgb(62 42 32 / 0.18);
+  --mcp-shadow-lg: 0 14px 34px -14px rgb(62 42 32 / 0.22);
   --mcp-shadow-outline: 0 0 0 1px var(--mcp-color-border-soft),
-    0 10px 22px -14px rgb(17 28 33 / 0.28);
+    0 10px 24px -14px rgb(120 72 48 / 0.14);
   --mcp-motion-fast: 140ms;
   --mcp-motion-base: 220ms;
   --mcp-motion-slow: 320ms;
@@ -144,16 +144,22 @@ body {
 
 .mcp-app-shell {
   background-image:
-    radial-gradient(circle at 12% 0%, rgb(255 107 0 / 0.12), transparent 34%),
-    radial-gradient(circle at 100% 0%, rgb(17 92 185 / 0.08), transparent 28%);
+    radial-gradient(ellipse 120% 70% at 8% -10%, rgb(255 122 48 / 0.16), transparent 42%),
+    radial-gradient(circle at 92% 6%, rgb(255 168 112 / 0.1), transparent 36%),
+    radial-gradient(ellipse 80% 50% at 50% 108%, rgb(210 120 72 / 0.07), transparent 48%);
   background-attachment: fixed;
 }
 
 .premium-shell {
   border-top: 1px solid var(--mcp-color-border-soft);
   border-bottom: 1px solid var(--mcp-color-border-soft);
-  background: linear-gradient(180deg, rgb(255 255 255 / 95%) 0%, rgb(238 245 247 / 82%) 100%);
-  backdrop-filter: blur(4px);
+  background: linear-gradient(
+    180deg,
+    rgb(255 252 248 / 96%) 0%,
+    rgb(250 240 232 / 88%) 52%,
+    rgb(244 232 222 / 78%) 100%
+  );
+  backdrop-filter: blur(6px);
 }
 
 .premium-nav-link {
@@ -170,7 +176,7 @@ body {
 
 .premium-nav-link:hover {
   color: var(--mcp-color-accent-strong);
-  background-color: rgb(57 73 219 / 0.08);
+  background-color: rgb(255 107 0 / 0.09);
 }
 
 .premium-nav-link[data-active="true"] {
@@ -247,7 +253,7 @@ body {
   font-size: var(--mcp-font-size-label);
   letter-spacing: var(--mcp-letter-label);
   text-transform: uppercase;
-  color: var(--mcp-color-text-muted);
+  color: color-mix(in srgb, var(--mcp-color-accent-strong) 22%, var(--mcp-color-text-muted));
 }
 
 .skip-link {
@@ -304,7 +310,7 @@ a:not([class*="rounded"]):not(.pixl-btn):not(.wp-block-button__link):active {
 
 :is(textarea, input:not([type="submit"])):focus-visible {
   border-color: var(--mcp-color-border-strong);
-  box-shadow: 0 0 0 3px rgb(57 73 219 / 0.16);
+  box-shadow: 0 0 0 3px rgb(255 107 0 / 0.2);
 }
 
 :is(textarea, input:not([type="submit"]))::placeholder {
@@ -569,7 +575,12 @@ h6 {
   border: 1px solid var(--mcp-color-border-strong);
   border-radius: var(--mcp-radius-md);
   padding: 1.1rem;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.95) 0%, rgb(242 243 255 / 0.85) 100%);
+  background: linear-gradient(
+    165deg,
+    rgb(255 252 248 / 0.98) 0%,
+    rgb(255 245 236 / 0.94) 45%,
+    rgb(252 234 220 / 0.9) 100%
+  );
   box-shadow: var(--mcp-shadow-outline);
 }
 
