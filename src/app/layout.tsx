@@ -43,6 +43,9 @@ export async function generateMetadata(): Promise<Metadata> {
       title: siteSettings.siteName,
       description: siteSettings.siteDescription,
     },
+    icons: {
+      icon: "/icon.svg",
+    },
     verification: siteSettings.googleSiteVerification
       ? { google: siteSettings.googleSiteVerification }
       : undefined,

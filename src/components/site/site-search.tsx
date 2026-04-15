@@ -33,7 +33,7 @@ export function SiteSearch({ entries, compact = false }: SiteSearchProps) {
   }, [entries, normalizedQuery]);
 
   return (
-    <div className={compact ? "site-search site-search--compact" : "site-search"}>
+    <div className={compact ? "site-search site-search--compact w-full" : "site-search"}>
       <label
         className={compact ? "sr-only" : "site-search__label"}
         htmlFor="site-search-input"
@@ -41,7 +41,7 @@ export function SiteSearch({ entries, compact = false }: SiteSearchProps) {
         Search pages
       </label>
       <input
-        className="w-full"
+        className="w-full text-center placeholder:text-center"
         id="site-search-input"
         type="search"
         value={query}

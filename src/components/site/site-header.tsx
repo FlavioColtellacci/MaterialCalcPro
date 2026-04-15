@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BrandLogo } from "@/components/site/brand-logo";
 import type { SearchablePage } from "@/lib/content/wp-pages";
 import { SiteSearch } from "@/components/site/site-search";
 
@@ -109,27 +110,28 @@ export function SiteHeader({ siteName, searchEntries }: SiteHeaderProps) {
         inert={concealed ? true : undefined}
       >
         <div className="mx-auto max-w-pixl-wide px-pixl-outer py-3 md:py-3.5">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,auto)_minmax(12rem,1fr)_auto] md:items-center md:gap-x-8 lg:grid-cols-[minmax(0,auto)_minmax(14rem,min(36vw,28rem))_auto]">
-            <div className="flex items-center gap-3 md:justify-start">
-              <div className="min-w-0 md:flex md:min-w-0 md:flex-col md:gap-1">
-                <p className="premium-eyebrow text-[0.625rem] leading-none">Precision instruments</p>
-                <Link
-                  className="mt-1 block text-lg font-black leading-none tracking-tight text-mcp-text-strong md:mt-0 md:text-xl"
-                  href="/"
-                >
-                  {siteName}
-                </Link>
-              </div>
+          <div className="flex flex-col gap-3 md:min-h-[3.5rem] md:flex-row md:items-center md:gap-4">
+            <div className="flex min-w-0 flex-1 items-center justify-start">
+              <Link
+                className="inline-flex max-w-full items-center"
+                href="/"
+                aria-label={`${siteName} — home`}
+              >
+                <BrandLogo
+                  siteName={siteName}
+                  className="h-10 w-auto max-w-[min(100%,19rem)] md:h-11 md:max-w-[22rem]"
+                />
+              </Link>
             </div>
 
-            <div className="min-w-0 w-full md:min-w-[12rem]">
+            <div className="mx-auto w-full min-w-0 max-w-[min(100%,36rem)] shrink-0 md:mx-0 md:w-[min(46vw,38rem)]">
               <SiteSearch compact entries={searchEntries} />
             </div>
 
             <nav
               id="site-navigation"
               aria-label="Primary navigation"
-              className="w-full md:w-auto md:justify-self-end"
+              className="flex w-full min-w-0 flex-1 items-center justify-end"
             >
               <ul className={`flex flex-col gap-0.5 text-sm ${navPanelClass}`}>
                 {navItems.map((item) => (
