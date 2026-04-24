@@ -27,8 +27,19 @@ function toMetadataBase(url: string): URL {
   }
 }
 
+/** Value for <meta name="google-adsense-account" content="…"> (AdSense site verification). */
+function toGoogleAdsenseAccountMetaContent(clientId: string): string {
+  const t = clientId.trim();
+  if (t.startsWith("ca-pub-")) return t;
+  if (t.startsWith("pub-")) return `ca-${t}`;
+  return t;
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const siteSettings = await getSiteSettings();
+  const adsenseAccountContent = toGoogleAdsenseAccountMetaContent(
+    siteSettings.adsenseClientIds[0] ?? "ca-pub-6113308150656934",
+  );
 
   return {
     title: {
@@ -49,6 +60,9 @@ export async function generateMetadata(): Promise<Metadata> {
     verification: siteSettings.googleSiteVerification
       ? { google: siteSettings.googleSiteVerification }
       : undefined,
+    other: {
+      "google-adsense-account": adsenseAccountContent,
+    },
   };
 }
 
