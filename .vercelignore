@@ -1,0 +1,4 @@
+# Never upload local secrets if using `vercel deploy` from this machine
+.credentials
+.env.local
+.env*.local
