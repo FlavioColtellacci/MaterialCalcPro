@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAdminFirestore } from "@/lib/firebase/admin";
 
 const DEFAULT_SITE_NAME = "MaterialCalcPro";
 const DEFAULT_SITE_DESCRIPTION = "Construction material calculators.";
@@ -18,10 +18,6 @@ const SITE_SETTING_KEYS = [
 ] as const;
 
 type SiteSettingKey = (typeof SITE_SETTING_KEYS)[number];
-type SiteSettingRow = {
-  setting_key: SiteSettingKey;
-  setting_value: unknown;
-};
 
 type SiteSettings = {
   siteName: string;
@@ -116,18 +112,19 @@ function buildSettingsFromMap(byKey: Map<SiteSettingKey, unknown>): SiteSettings
 }
 
 export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("site_settings")
-    .select("setting_key,setting_value")
-    .in("setting_key", [...SITE_SETTING_KEYS])
-    .returns<SiteSettingRow[]>();
+  const db = getAdminFirestore();
+  const refs = SITE_SETTING_KEYS.map((key) => db.collection("site_settings").doc(key));
+  const snapshots = await db.getAll(...refs);
 
   const byKey = new Map<SiteSettingKey, unknown>();
-  if (!error) {
-    const rows = data ?? [];
-    rows.forEach((row) => byKey.set(row.setting_key, row.setting_value));
-  }
+  snapshots.forEach((snap, index) => {
+    const key = SITE_SETTING_KEYS[index]!;
+    if (!snap.exists) return;
+    const data = snap.data() as { setting_value?: unknown } | undefined;
+    if (data && "setting_value" in data) {
+      byKey.set(key, data.setting_value);
+    }
+  });
 
   return buildSettingsFromMap(byKey);
 });

@@ -8,6 +8,9 @@ out/
 # Env (keep .env.example tracked)
 .env
 .env.local
+
+# Local Firebase key recovered from .env (never commit)
+.credentials/
 .env.development.local
 .env.test.local
 .env.production.local

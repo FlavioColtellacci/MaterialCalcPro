@@ -13,13 +13,12 @@
     "lint": "eslint .",
     "test": "vitest run",
     "migration:extract": "node scripts/migration/build-migration-payload.mjs",
-    "migration:seed": "node scripts/migration/seed-supabase.mjs",
+    "migration:seed": "node --env-file=.env.local scripts/migration/seed-firestore.mjs",
     "migration:run": "npm run migration:extract && npm run migration:seed",
-    "sync:site-integrations": "node --env-file=.env.local scripts/sync-site-integrations-from-env.mjs"
+    "sync:site-integrations": "node --env-file=.env.local scripts/sync-site-integrations-to-firestore.mjs"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "^2.49.8",
+    "firebase-admin": "^13.0.0",
     "@tailwindcss/postcss": "^4.1.4",
     "next": "^15.5.0",
     "react": "^19.1.0",

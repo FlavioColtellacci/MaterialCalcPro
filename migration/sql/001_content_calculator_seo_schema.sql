@@ -1,5 +1,5 @@
 -- MaterialCalcPro: WordPress migration target schema
--- Run once in Supabase SQL Editor before `npm run migration:seed`.
+-- Legacy Postgres schema (Supabase). The app now uses Firestore; keep this file only as a historical reference.
 -- Service role bypasses RLS for seeding; anon key is used by Next.js for reads.
 
 -- Pages (one row per public route slug)

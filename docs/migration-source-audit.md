@@ -1,6 +1,6 @@
-# Source audit (WordPress → Next.js + Supabase)
+# Source audit (WordPress → Next.js + data store)
 
-This document inventories the WordPress export artifacts used for migration and maps them into the Supabase content model (pages, calculators, SEO, integrations). It is a historical reference for the extraction pipeline under `scripts/migration/`.
+This document inventories the WordPress export artifacts used for migration and maps them into the original Supabase-style content model (pages, calculators, SEO, integrations). **Production reads/writes now use Firebase Firestore**; the table names below still describe the shape of `migration/output/wp-migration-payload.json` and the extraction pipeline under `scripts/migration/`.
 
 ## Audited inputs (local exports, gitignored)
 
